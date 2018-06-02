@@ -3,26 +3,28 @@ package com.ky.demo.web;
 
 import com.ky.demo.entity.Area;
 import com.ky.demo.service.AreaService;
-import org.apache.commons.fileupload.*;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
-import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
-import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.ResourceUtils;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 //=@Controller+@ResponseBody
 @RequestMapping("/superadmin")
 public class AreaController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AreaController.class);
+
     @Autowired
     private AreaService areaService;
 
@@ -70,24 +72,34 @@ public class AreaController {
     //todo
 //    无法得到文件数据
     @RequestMapping(value = "/uploadfile",method = RequestMethod.POST)
-    public void uploadPicture(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        //获取文件需要上传到的路径
-//        System.out.println(request.getParameter("type"));
-//        System.out.println(request.getParameter("user"));
-        ServletInputStream input=request.getInputStream();
-//        System.out.println(strings.);
-        OutputStream output = null;
-        try {
-            output = new FileOutputStream("1.jpg");
-            byte[] buf = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = input.read(buf)) > 0) {
-                output.write(buf, 0, bytesRead);
-            }
-        } finally {
-            input.close();
-            output.close();
+    public HashMap<String, String> uploadPicture(@RequestParam("file") MultipartFile file) throws Exception {
+
+        HashMap<String, String> result = new HashMap<>();
+
+        if(file.isEmpty()) {
+            result.put("result", "false");
+            result.put("message", "请选择一个文件");
+            return result;
         }
+
+        String UPLOAD_FOLDER = ResourceUtils.getURL("classpath:").getPath() + "static/uploadfiles/";
+
+        File dir = new File(UPLOAD_FOLDER);
+        if (!dir.isDirectory())
+            dir.mkdirs();
+
+        try {
+
+            byte[] bytes = file.getBytes();
+            Path path = Paths.get(UPLOAD_FOLDER + file.getOriginalFilename());
+            Files.write(path, bytes);
+            //redirectAttributes.addFlashAttribute("message", "已经将 '" + file.getOriginalFilename() + "' 的文件上传成功") ;
+            result.put("result", "true");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return result;
     }
 
 }
