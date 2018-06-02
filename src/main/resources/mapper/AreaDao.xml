@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ky.demo.dao.AreaDao">
+    <!--实现dao中的方法-->
+    <select id="queryArea" resultType="com.ky.demo.entity.Area">
+        SELECT  area_id,area_name,priority,
+        create_time,last_edit_time
+        FROM tb_area
+        ORDER BY priority
+        DESC
+    </select>
+<!--在#{}中添加变量，但是只有一个变量所以可以随意命名-->
+    <select id="queryAreaById" resultType="com.ky.demo.entity.Area">
+      SELECT  area_id,area_name,priority,
+        create_time,last_edit_time
+        FROM tb_area
+        WHERE
+        area_id=#{areaId}
+    </select>
+<!--useGeneratedKeys:如果插入成功，可以返回主键值-->
+    <insert id="insertArea" useGeneratedKeys="true" keyProperty="areaId"
+            keyColumn="area_id" parameterType="com.ky.demo.entity.Area">
+        INSERT INTO
+        tb_area(area_name, priority,create_time, last_edit_time)
+        VALUES
+        (#{areaName},#{priority},#{createTime},#{lastEditTime})
+    </insert>
+<!--areaName类型必须为包装类-->
+    <!--注意逗号-->
+    <update id="updataArea" parameterType="com.ky.demo.entity.Area">
+        UPDATE tb_area
+        <set>
+            <if test="areaName!=null">area_name=#{areaName},</if>
+            <if test="priority!=null">priority=#{priority},</if>
+            <if test="lastEditTime!=null">last_edit_time=#{lastEditTime}</if>
+        </set>
+        WHERE area_id=#{areaId}
+    </update>
+
+    <delete id="deleteArea">
+        DELETE FROM
+        tb_area
+        WHERE  area_id=#{areaId}
+    </delete>
+</mapper>
